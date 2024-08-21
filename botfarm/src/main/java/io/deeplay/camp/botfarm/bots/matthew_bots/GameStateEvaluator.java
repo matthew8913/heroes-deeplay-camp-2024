@@ -4,5 +4,5 @@ import io.deeplay.camp.game.mechanics.GameState;
 import io.deeplay.camp.game.mechanics.PlayerType;
 
 public interface GameStateEvaluator {
-  double evaluate(GameState gameState, PlayerType maximizingPlayer);
+  double evaluate(final GameState gameState, PlayerType maximizingPlayer);
 }

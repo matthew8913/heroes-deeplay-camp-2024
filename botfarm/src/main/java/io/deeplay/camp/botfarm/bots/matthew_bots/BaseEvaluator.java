@@ -12,18 +12,19 @@ import java.util.Properties;
 
 public class BaseEvaluator implements GameStateEvaluator {
 
-  double[][] unitsCosts = new double[Board.COLUMNS][Board.ROWS];
-  static Properties props;
-  static double isGeneralBonus;
-  static double rowPenalty;
-  static double noDefPenalty;
+  private final double[][] unitsCosts = new double[Board.COLUMNS][Board.ROWS];
+  private final double isGeneralBonus;
+  private final double rowPenalty;
+  private final double noDefPenalty;
+  private final double maxUnitCost;
+  private final double minUnitCost;
 
-  static {
-    props = new Properties();
+  public BaseEvaluator() {
+    Properties props = new Properties();
     try (InputStream inputStream =
         BaseEvaluator.class.getClassLoader().getResourceAsStream("coefficients.properties")) {
       if (inputStream == null) {
-        throw new IOException("config.properties not found");
+        throw new IOException("coefficients.properties not found");
       }
       props.load(inputStream);
     } catch (IOException e) {
@@ -32,6 +33,9 @@ public class BaseEvaluator implements GameStateEvaluator {
     isGeneralBonus = Double.parseDouble(props.getProperty("isGeneralBonus"));
     rowPenalty = Double.parseDouble(props.getProperty("rowPenalty"));
     noDefPenalty = Double.parseDouble(props.getProperty("noDefPenalty"));
+
+    maxUnitCost = isGeneralBonus;
+    minUnitCost = rowPenalty * noDefPenalty;
   }
 
   @Override
@@ -42,7 +46,14 @@ public class BaseEvaluator implements GameStateEvaluator {
     }
     evaluateUnitsCost(gameState);
 
-    return sumUnitsCosts(maximizingPlayerType);
+    double sum = sumUnitsCosts(maximizingPlayerType);
+    return normalize(sum);
+  }
+
+  private double normalize(double sum) {
+    double maxPossibleValue = maxUnitCost > minUnitCost ? 6 * maxUnitCost : 6 * minUnitCost;
+    double minPossibleValue = maxUnitCost > minUnitCost ? -6 * maxUnitCost : -6 * minUnitCost;
+    return (sum - minPossibleValue) / (maxPossibleValue - minPossibleValue) * 2 - 1;
   }
 
   private double sumUnitsCosts(PlayerType maximizingPlayerType) {
@@ -119,9 +130,11 @@ public class BaseEvaluator implements GameStateEvaluator {
 
   private double evaluateGameEnd(GameState gameState, PlayerType maximizingPlayer) {
     if (gameState.getWinner() == maximizingPlayer) {
-      return Double.POSITIVE_INFINITY;
+      return 1;
+    } else if (gameState.getWinner() == null) {
+      return 0;
     } else {
-      return Double.NEGATIVE_INFINITY;
+      return -1;
     }
   }
 }
