@@ -3,9 +3,9 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.minimax;
 import io.deeplay.camp.botfarm.bots.Bot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.GameStateEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
+import io.deeplay.camp.game.entities.StateChance;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
-import io.deeplay.camp.game.exceptions.GameException;
 import io.deeplay.camp.game.mechanics.GameStage;
 import io.deeplay.camp.game.mechanics.GameState;
 import io.deeplay.camp.game.mechanics.PlayerType;
@@ -17,7 +17,6 @@ import lombok.SneakyThrows;
 
 public class MultiThreadMinimaxBot extends Bot {
   private PlayerType maximizingPlayerType;
-
   private final int maxDepth;
   final TreeAnalyzer treeAnalyzer;
   private static final double MAX_COST = Double.POSITIVE_INFINITY;
@@ -46,9 +45,7 @@ public class MultiThreadMinimaxBot extends Bot {
   public MakeMoveEvent generateMakeMoveEvent(GameState gameState) {
     maximizingPlayerType = gameState.getCurrentPlayer();
     treeAnalyzer.startMoveStopWatch();
-    EventScore result =
-        forkJoinPool.invoke(
-            new MinimaxTask(gameState.getCopy(), maxDepth, MIN_COST, MAX_COST, true));
+    EventScore result = forkJoinPool.invoke(new MinimaxTask(gameState.getCopy(), maxDepth, MIN_COST, MAX_COST, true));
     treeAnalyzer.endMoveStopWatch();
     return (MakeMoveEvent) result.getEvent();
   }
@@ -60,8 +57,7 @@ public class MultiThreadMinimaxBot extends Bot {
     private final double beta;
     private boolean maximizing;
 
-    public MinimaxTask(
-        GameState gameState, int depth, double alpha, double beta, boolean maximizing) {
+    public MinimaxTask(GameState gameState, int depth, double alpha, double beta, boolean maximizing) {
       this.gameState = gameState;
       this.depth = depth;
       this.alpha = alpha;
@@ -71,52 +67,46 @@ public class MultiThreadMinimaxBot extends Bot {
 
     @Override
     protected EventScore compute() {
-      try {
-        treeAnalyzer.incrementNodesCount();
-        // Базовый случай (Дошли до ограничения глубины или конца игры)
-        if (depth == 0 || gameState.getGameStage() == GameStage.ENDED) {
-          return new EventScore(
-              null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
-        }
-
-        List<MakeMoveEvent> possibleMoves = gameState.getPossibleMoves();
-        if (possibleMoves.isEmpty()) {
-          if (depth == maxDepth) {
-            return new EventScore(null, maximizing ? MIN_COST : MAX_COST);
-          }
-          gameState.changeCurrentPlayer();
-          possibleMoves = gameState.getPossibleMoves();
-          maximizing = !maximizing;
-        }
-
-        if (maximizing) {
-          return maximize(gameState, depth, alpha, beta, possibleMoves);
-        } else {
-          return minimize(gameState, depth, alpha, beta, possibleMoves);
-        }
-      } catch (GameException e) {
-        throw new RuntimeException(e);
+      treeAnalyzer.incrementNodesCount();
+      // Базовый случай (Дошли до ограничения глубины или конца игры)
+      if (depth == 0 || gameState.getGameStage() == GameStage.ENDED) {
+        return new EventScore(null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
       }
+
+      List<MakeMoveEvent> possibleMoves = gameState.getPossibleMoves();
+      if (possibleMoves.isEmpty()) {
+        if (depth == maxDepth) {
+          return new EventScore(null, maximizing ? MIN_COST : MAX_COST);
+        }
+        gameState.changeCurrentPlayer();
+        possibleMoves = gameState.getPossibleMoves();
+        maximizing = !maximizing;
+      }
+
+      return maximizing
+              ? maximize(gameState, depth, alpha, beta, possibleMoves)
+              : minimize(gameState, depth, alpha, beta, possibleMoves);
     }
 
+    @SneakyThrows
     private EventScore maximize(
-        GameState gameState,
-        int depth,
-        double alpha,
-        double beta,
-        List<MakeMoveEvent> possibleMoves)
-        throws GameException {
+            GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves) {
       EventScore bestResult = new EventScore(null, MIN_COST);
       for (MakeMoveEvent move : possibleMoves) {
-        GameState newGameState = gameState.getCopy();
-        newGameState.makeMove(move);
-        MinimaxTask task = new MinimaxTask(newGameState, depth - 1, alpha, beta, true);
-        task.fork();
-        EventScore result = task.join();
-        if (result.getScore() > bestResult.getScore()) {
-          bestResult = new EventScore(move, result.getScore());
+        List<StateChance> possibleStates = gameState.getPossibleState(move);
+        for (StateChance stateChance : possibleStates) {
+          MinimaxTask task = new MinimaxTask(stateChance.gameState(), depth - 1, alpha, beta, true);
+          task.fork();
+          EventScore result = task.join();
+          result.setScore(result.getScore() * stateChance.chance());
+          if (result.getScore() > bestResult.getScore()) {
+            bestResult = new EventScore(move, result.getScore());
+          }
+          alpha = Math.max(alpha, bestResult.getScore());
+          if (beta <= alpha) {
+            break;
+          }
         }
-        alpha = Math.max(alpha, bestResult.getScore());
         if (beta <= alpha) {
           break;
         }
@@ -124,31 +114,31 @@ public class MultiThreadMinimaxBot extends Bot {
       return bestResult;
     }
 
+    @SneakyThrows
     private EventScore minimize(
-        GameState gameState,
-        int depth,
-        double alpha,
-        double beta,
-        List<MakeMoveEvent> possibleMoves)
-        throws GameException {
+            GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves) {
       EventScore bestResult = new EventScore(null, MAX_COST);
+
       for (MakeMoveEvent move : possibleMoves) {
-        GameState newGameState = gameState.getCopy();
-        newGameState.makeMove(move);
-        MinimaxTask task = new MinimaxTask(newGameState, depth - 1, alpha, beta, false);
-        task.fork();
-        EventScore result = task.join();
-        if (result.getScore() < bestResult.getScore()) {
-          bestResult = new EventScore(move, result.getScore());
+        List<StateChance> possibleStates = gameState.getPossibleState(move);
+        for (StateChance stateChance : possibleStates) {
+          MinimaxTask task = new MinimaxTask(stateChance.gameState(), depth - 1, alpha, beta, false);
+          task.fork();
+          EventScore result = task.join();
+          result.setScore(result.getScore() * stateChance.chance());
+          if (result.getScore() < bestResult.getScore()) {
+            bestResult = new EventScore(move, result.getScore());
+          }
+          beta = Math.min(beta, bestResult.getScore());
+          if (beta <= alpha) {
+            break;
+          }
         }
-        beta = Math.min(beta, bestResult.getScore());
         if (beta <= alpha) {
-          break; // Alpha cut-off
+          break;
         }
       }
       return bestResult;
     }
   }
-
-
 }

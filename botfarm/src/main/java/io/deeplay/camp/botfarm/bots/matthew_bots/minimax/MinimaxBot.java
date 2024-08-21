@@ -3,6 +3,7 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.minimax;
 import io.deeplay.camp.botfarm.bots.Bot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.GameStateEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
+import io.deeplay.camp.game.entities.StateChance;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
 import io.deeplay.camp.game.exceptions.GameException;
@@ -74,11 +75,13 @@ public class MinimaxBot extends Bot {
       throws GameException {
     EventScore bestResult = new EventScore(null, MIN_COST);
     for (MakeMoveEvent move : possibleMoves) {
-      GameState newGameState = gameState.getCopy();
-      newGameState.makeMove(move);
-      EventScore result = minimax(newGameState, depth - 1, true);
-      if (result.getScore() > bestResult.getScore()) {
-        bestResult = new EventScore(move, result.getScore());
+      List<StateChance> possibleStates = gameState.getPossibleState(move);
+      for(StateChance stateChance : possibleStates) {
+        EventScore result = minimax(stateChance.gameState(), depth - 1, true);
+        result.setScore(result.getScore()*stateChance.chance());
+        if (result.getScore() > bestResult.getScore()) {
+          bestResult = new EventScore(move, result.getScore());
+        }
       }
     }
     return bestResult;
@@ -88,11 +91,13 @@ public class MinimaxBot extends Bot {
       throws GameException {
     EventScore bestResult = new EventScore(null, MAX_COST);
     for (MakeMoveEvent move : possibleMoves) {
-      GameState newGameState = gameState.getCopy();
-      newGameState.makeMove(move);
-      EventScore result = minimax(newGameState, depth - 1, false);
-      if (result.getScore() < bestResult.getScore()) {
-        bestResult = new EventScore(move, result.getScore());
+      List<StateChance> possibleStates = gameState.getPossibleState(move);
+      for(StateChance stateChance : possibleStates) {
+        EventScore result = minimax(stateChance.gameState(), depth - 1, false);
+        result.setScore(result.getScore()*stateChance.chance());
+        if (result.getScore() < bestResult.getScore()) {
+          bestResult = new EventScore(move, result.getScore());
+        }
       }
     }
     return bestResult;

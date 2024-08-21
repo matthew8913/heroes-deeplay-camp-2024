@@ -3,6 +3,7 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.minimax;
 import io.deeplay.camp.botfarm.bots.Bot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.GameStateEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
+import io.deeplay.camp.game.entities.StateChance;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
 import io.deeplay.camp.game.exceptions.GameException;
@@ -47,8 +48,8 @@ public class AlphaBetaMinimaxBot extends Bot {
   }
 
   private EventScore minimax(
-      GameState gameState, int depth, double alpha, double beta, boolean maximizing)
-      throws GameException {
+          GameState gameState, int depth, double alpha, double beta, boolean maximizing)
+          throws GameException {
     treeAnalyzer.incrementNodesCount();
     // Базовый случай (Дошли до ограничения глубины или конца игры)
     if (depth == 0 || gameState.getGameStage() == GameStage.ENDED) {
@@ -66,22 +67,27 @@ public class AlphaBetaMinimaxBot extends Bot {
     }
 
     return maximizing
-        ? maximize(gameState, depth, alpha, beta, possibleMoves)
-        : minimize(gameState, depth, alpha, beta, possibleMoves);
+            ? maximize(gameState, depth, alpha, beta, possibleMoves)
+            : minimize(gameState, depth, alpha, beta, possibleMoves);
   }
 
   private EventScore maximize(
-      GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves)
-      throws GameException {
+          GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves)
+          throws GameException {
     EventScore bestResult = new EventScore(null, MIN_COST);
     for (MakeMoveEvent move : possibleMoves) {
-      GameState newGameState = gameState.getCopy();
-      newGameState.makeMove(move);
-      EventScore result = minimax(newGameState, depth - 1, alpha, beta, true);
-      if (result.getScore() > bestResult.getScore()) {
-        bestResult = new EventScore(move, result.getScore());
+      List<StateChance> possibleStates = gameState.getPossibleState(move);
+      for (StateChance stateChance : possibleStates) {
+        EventScore result = minimax(stateChance.gameState(), depth - 1, alpha, beta, true);
+        result.setScore(result.getScore() * stateChance.chance());
+        if (result.getScore() > bestResult.getScore()) {
+          bestResult = new EventScore(move, result.getScore());
+        }
+        alpha = Math.max(alpha, bestResult.getScore());
+        if (beta <= alpha) {
+          break;
+        }
       }
-      alpha = Math.max(alpha, bestResult.getScore());
       if (beta <= alpha) {
         break;
       }
@@ -90,17 +96,24 @@ public class AlphaBetaMinimaxBot extends Bot {
   }
 
   private EventScore minimize(
-      GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves)
-      throws GameException {
+          GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves)
+          throws GameException {
     EventScore bestResult = new EventScore(null, MAX_COST);
+
     for (MakeMoveEvent move : possibleMoves) {
-      GameState newGameState = gameState.getCopy();
-      newGameState.makeMove(move);
-      EventScore result = minimax(newGameState, depth - 1, alpha, beta, false);
-      if (result.getScore() < bestResult.getScore()) {
-        bestResult = new EventScore(move, result.getScore());
+
+      List<StateChance> possibleStates = gameState.getPossibleState(move);
+      for (StateChance stateChance : possibleStates) {
+        EventScore result = minimax(stateChance.gameState(), depth - 1, alpha, beta, false);
+        result.setScore(result.getScore() * stateChance.chance());
+        if (result.getScore() < bestResult.getScore()) {
+          bestResult = new EventScore(move, result.getScore());
+        }
+        beta = Math.min(beta, bestResult.getScore());
+        if (beta <= alpha) {
+          break;
+        }
       }
-      beta = Math.min(beta, bestResult.getScore());
       if (beta <= alpha) {
         break;
       }
