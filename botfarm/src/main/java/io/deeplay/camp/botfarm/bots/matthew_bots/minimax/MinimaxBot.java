@@ -3,7 +3,6 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.minimax;
 import io.deeplay.camp.botfarm.bots.Bot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.GameStateEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
-import io.deeplay.camp.game.events.Event;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
 import io.deeplay.camp.game.exceptions.GameException;
@@ -43,23 +42,23 @@ public class MinimaxBot extends Bot {
   public MakeMoveEvent generateMakeMoveEvent(GameState gameState) {
     maximizingPlayerType = gameState.getCurrentPlayer();
     treeAnalyzer.startMoveStopWatch();
-    MinimaxResult result = minimax(gameState.getCopy(), maxDepth, true);
+    EventScore result = minimax(gameState.getCopy(), maxDepth, true);
     treeAnalyzer.endMoveStopWatch();
-    return (MakeMoveEvent) result.event;
+    return (MakeMoveEvent) result.getEvent();
   }
 
-  private MinimaxResult minimax(GameState gameState, int depth, boolean maximizing)
+  private EventScore minimax(GameState gameState, int depth, boolean maximizing)
       throws GameException {
     treeAnalyzer.incrementNodesCount();
     // Базовый случай (Дошли до ограничения глубины или конца игры)
     if (depth == 0 || gameState.getGameStage() == GameStage.ENDED) {
-      return new MinimaxResult(null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
+      return new EventScore(null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
     }
 
     List<MakeMoveEvent> possibleMoves = gameState.getPossibleMoves();
     if (possibleMoves.isEmpty()) {
       if (depth == maxDepth) {
-        return new MinimaxResult(null, maximizing ? MIN_COST : MAX_COST);
+        return new EventScore(null, maximizing ? MIN_COST : MAX_COST);
       }
       gameState.changeCurrentPlayer();
       possibleMoves = gameState.getPossibleMoves();
@@ -71,41 +70,31 @@ public class MinimaxBot extends Bot {
         : minimize(gameState, depth, possibleMoves);
   }
 
-  private MinimaxResult maximize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves)
+  private EventScore maximize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves)
       throws GameException {
-    MinimaxResult bestResult = new MinimaxResult(null, MIN_COST);
+    EventScore bestResult = new EventScore(null, MIN_COST);
     for (MakeMoveEvent move : possibleMoves) {
       GameState newGameState = gameState.getCopy();
       newGameState.makeMove(move);
-      MinimaxResult result = minimax(newGameState, depth - 1, true);
-      if (result.score > bestResult.score) {
-        bestResult = new MinimaxResult(move, result.score);
+      EventScore result = minimax(newGameState, depth - 1, true);
+      if (result.getScore() > bestResult.getScore()) {
+        bestResult = new EventScore(move, result.getScore());
       }
     }
     return bestResult;
   }
 
-  private MinimaxResult minimize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves)
+  private EventScore minimize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves)
       throws GameException {
-    MinimaxResult bestResult = new MinimaxResult(null, MAX_COST);
+    EventScore bestResult = new EventScore(null, MAX_COST);
     for (MakeMoveEvent move : possibleMoves) {
       GameState newGameState = gameState.getCopy();
       newGameState.makeMove(move);
-      MinimaxResult result = minimax(newGameState, depth - 1, false);
-      if (result.score < bestResult.score) {
-        bestResult = new MinimaxResult(move, result.score);
+      EventScore result = minimax(newGameState, depth - 1, false);
+      if (result.getScore() < bestResult.getScore()) {
+        bestResult = new EventScore(move, result.getScore());
       }
     }
     return bestResult;
-  }
-
-  private static class MinimaxResult {
-    Event event;
-    double score;
-
-    MinimaxResult(Event event, double score) {
-      this.event = event;
-      this.score = score;
-    }
   }
 }

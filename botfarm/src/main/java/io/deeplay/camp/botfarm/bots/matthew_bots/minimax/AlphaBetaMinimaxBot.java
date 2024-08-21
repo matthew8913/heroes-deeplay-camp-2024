@@ -3,7 +3,6 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.minimax;
 import io.deeplay.camp.botfarm.bots.Bot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.GameStateEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
-import io.deeplay.camp.game.events.Event;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
 import io.deeplay.camp.game.exceptions.GameException;
@@ -16,7 +15,6 @@ import lombok.SneakyThrows;
 
 public class AlphaBetaMinimaxBot extends Bot {
   private PlayerType maximizingPlayerType;
-
   private final int maxDepth;
   final TreeAnalyzer treeAnalyzer;
   private static final double MAX_COST = Double.POSITIVE_INFINITY;
@@ -43,24 +41,24 @@ public class AlphaBetaMinimaxBot extends Bot {
   public MakeMoveEvent generateMakeMoveEvent(GameState gameState) {
     maximizingPlayerType = gameState.getCurrentPlayer();
     treeAnalyzer.startMoveStopWatch();
-    MinimaxResult result = minimax(gameState.getCopy(), maxDepth, MIN_COST, MAX_COST, true);
+    EventScore result = minimax(gameState.getCopy(), maxDepth, MIN_COST, MAX_COST, true);
     treeAnalyzer.endMoveStopWatch();
-    return (MakeMoveEvent) result.event;
+    return (MakeMoveEvent) result.getEvent();
   }
 
-  private MinimaxResult minimax(
+  private EventScore minimax(
       GameState gameState, int depth, double alpha, double beta, boolean maximizing)
       throws GameException {
     treeAnalyzer.incrementNodesCount();
     // Базовый случай (Дошли до ограничения глубины или конца игры)
     if (depth == 0 || gameState.getGameStage() == GameStage.ENDED) {
-      return new MinimaxResult(null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
+      return new EventScore(null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
     }
 
     List<MakeMoveEvent> possibleMoves = gameState.getPossibleMoves();
     if (possibleMoves.isEmpty()) {
       if (depth == maxDepth) {
-        return new MinimaxResult(null, maximizing ? MIN_COST : MAX_COST);
+        return new EventScore(null, maximizing ? MIN_COST : MAX_COST);
       }
       gameState.changeCurrentPlayer();
       possibleMoves = gameState.getPossibleMoves();
@@ -72,18 +70,18 @@ public class AlphaBetaMinimaxBot extends Bot {
         : minimize(gameState, depth, alpha, beta, possibleMoves);
   }
 
-  private MinimaxResult maximize(
+  private EventScore maximize(
       GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves)
       throws GameException {
-    MinimaxResult bestResult = new MinimaxResult(null, MIN_COST);
+    EventScore bestResult = new EventScore(null, MIN_COST);
     for (MakeMoveEvent move : possibleMoves) {
       GameState newGameState = gameState.getCopy();
       newGameState.makeMove(move);
-      MinimaxResult result = minimax(newGameState, depth - 1, alpha, beta, true);
-      if (result.score > bestResult.score) {
-        bestResult = new MinimaxResult(move, result.score);
+      EventScore result = minimax(newGameState, depth - 1, alpha, beta, true);
+      if (result.getScore() > bestResult.getScore()) {
+        bestResult = new EventScore(move, result.getScore());
       }
-      alpha = Math.max(alpha, bestResult.score);
+      alpha = Math.max(alpha, bestResult.getScore());
       if (beta <= alpha) {
         break;
       }
@@ -91,32 +89,22 @@ public class AlphaBetaMinimaxBot extends Bot {
     return bestResult;
   }
 
-  private MinimaxResult minimize(
+  private EventScore minimize(
       GameState gameState, int depth, double alpha, double beta, List<MakeMoveEvent> possibleMoves)
       throws GameException {
-    MinimaxResult bestResult = new MinimaxResult(null, MAX_COST);
+    EventScore bestResult = new EventScore(null, MAX_COST);
     for (MakeMoveEvent move : possibleMoves) {
       GameState newGameState = gameState.getCopy();
       newGameState.makeMove(move);
-      MinimaxResult result = minimax(newGameState, depth - 1, alpha, beta, false);
-      if (result.score < bestResult.score) {
-        bestResult = new MinimaxResult(move, result.score);
+      EventScore result = minimax(newGameState, depth - 1, alpha, beta, false);
+      if (result.getScore() < bestResult.getScore()) {
+        bestResult = new EventScore(move, result.getScore());
       }
-      beta = Math.min(beta, bestResult.score);
+      beta = Math.min(beta, bestResult.getScore());
       if (beta <= alpha) {
-        break; // Alpha cut-off
+        break;
       }
     }
     return bestResult;
-  }
-
-  private static class MinimaxResult {
-    Event event;
-    double score;
-
-    MinimaxResult(Event event, double score) {
-      this.event = event;
-      this.score = score;
-    }
   }
 }

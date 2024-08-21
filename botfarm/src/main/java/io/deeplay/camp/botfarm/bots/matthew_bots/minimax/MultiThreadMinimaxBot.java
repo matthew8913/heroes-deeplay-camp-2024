@@ -3,7 +3,6 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.minimax;
 import io.deeplay.camp.botfarm.bots.Bot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.GameStateEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
-import io.deeplay.camp.game.events.Event;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
 import io.deeplay.camp.game.exceptions.GameException;
@@ -47,14 +46,14 @@ public class MultiThreadMinimaxBot extends Bot {
   public MakeMoveEvent generateMakeMoveEvent(GameState gameState) {
     maximizingPlayerType = gameState.getCurrentPlayer();
     treeAnalyzer.startMoveStopWatch();
-    MinimaxResult result =
+    EventScore result =
         forkJoinPool.invoke(
             new MinimaxTask(gameState.getCopy(), maxDepth, MIN_COST, MAX_COST, true));
     treeAnalyzer.endMoveStopWatch();
-    return (MakeMoveEvent) result.event;
+    return (MakeMoveEvent) result.getEvent();
   }
 
-  private class MinimaxTask extends RecursiveTask<MinimaxResult> {
+  private class MinimaxTask extends RecursiveTask<EventScore> {
     private final GameState gameState;
     private final int depth;
     private final double alpha;
@@ -71,19 +70,19 @@ public class MultiThreadMinimaxBot extends Bot {
     }
 
     @Override
-    protected MinimaxResult compute() {
+    protected EventScore compute() {
       try {
         treeAnalyzer.incrementNodesCount();
         // Базовый случай (Дошли до ограничения глубины или конца игры)
         if (depth == 0 || gameState.getGameStage() == GameStage.ENDED) {
-          return new MinimaxResult(
+          return new EventScore(
               null, gameStateEvaluator.evaluate(gameState, maximizingPlayerType));
         }
 
         List<MakeMoveEvent> possibleMoves = gameState.getPossibleMoves();
         if (possibleMoves.isEmpty()) {
           if (depth == maxDepth) {
-            return new MinimaxResult(null, maximizing ? MIN_COST : MAX_COST);
+            return new EventScore(null, maximizing ? MIN_COST : MAX_COST);
           }
           gameState.changeCurrentPlayer();
           possibleMoves = gameState.getPossibleMoves();
@@ -100,24 +99,24 @@ public class MultiThreadMinimaxBot extends Bot {
       }
     }
 
-    private MinimaxResult maximize(
+    private EventScore maximize(
         GameState gameState,
         int depth,
         double alpha,
         double beta,
         List<MakeMoveEvent> possibleMoves)
         throws GameException {
-      MinimaxResult bestResult = new MinimaxResult(null, MIN_COST);
+      EventScore bestResult = new EventScore(null, MIN_COST);
       for (MakeMoveEvent move : possibleMoves) {
         GameState newGameState = gameState.getCopy();
         newGameState.makeMove(move);
         MinimaxTask task = new MinimaxTask(newGameState, depth - 1, alpha, beta, true);
         task.fork();
-        MinimaxResult result = task.join();
-        if (result.score > bestResult.score) {
-          bestResult = new MinimaxResult(move, result.score);
+        EventScore result = task.join();
+        if (result.getScore() > bestResult.getScore()) {
+          bestResult = new EventScore(move, result.getScore());
         }
-        alpha = Math.max(alpha, bestResult.score);
+        alpha = Math.max(alpha, bestResult.getScore());
         if (beta <= alpha) {
           break;
         }
@@ -125,24 +124,24 @@ public class MultiThreadMinimaxBot extends Bot {
       return bestResult;
     }
 
-    private MinimaxResult minimize(
+    private EventScore minimize(
         GameState gameState,
         int depth,
         double alpha,
         double beta,
         List<MakeMoveEvent> possibleMoves)
         throws GameException {
-      MinimaxResult bestResult = new MinimaxResult(null, MAX_COST);
+      EventScore bestResult = new EventScore(null, MAX_COST);
       for (MakeMoveEvent move : possibleMoves) {
         GameState newGameState = gameState.getCopy();
         newGameState.makeMove(move);
         MinimaxTask task = new MinimaxTask(newGameState, depth - 1, alpha, beta, false);
         task.fork();
-        MinimaxResult result = task.join();
-        if (result.score < bestResult.score) {
-          bestResult = new MinimaxResult(move, result.score);
+        EventScore result = task.join();
+        if (result.getScore() < bestResult.getScore()) {
+          bestResult = new EventScore(move, result.getScore());
         }
-        beta = Math.min(beta, bestResult.score);
+        beta = Math.min(beta, bestResult.getScore());
         if (beta <= alpha) {
           break; // Alpha cut-off
         }
@@ -151,13 +150,5 @@ public class MultiThreadMinimaxBot extends Bot {
     }
   }
 
-  private static class MinimaxResult {
-    Event event;
-    double score;
 
-    MinimaxResult(Event event, double score) {
-      this.event = event;
-      this.score = score;
-    }
-  }
 }
