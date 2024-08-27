@@ -78,6 +78,8 @@ public class MinimaxMovementBot extends MovementBot {
       possibleMoves = gameState.getPossibleMoves();
       maximizing = !maximizing;
     }
+    removeUnnecessaryMoves(possibleMoves);
+
 
     return maximizing
         ? maximize(gameState, depth, possibleMoves)
@@ -98,6 +100,9 @@ public class MinimaxMovementBot extends MovementBot {
       for (MakeMoveEvent move : possibleMoves) {
         List<StateChance> possibleStates = gameState.getPossibleState(move);
         for (StateChance stateChance : possibleStates) {
+          if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
+            continue;
+          }
           EventScore result = minimax(stateChance.gameState(), depth - 1, true);
           result.setScore(result.getScore() * stateChance.chance());
           if (result.getScore() > bestResult.getScore()) {
@@ -126,6 +131,9 @@ public class MinimaxMovementBot extends MovementBot {
       for (MakeMoveEvent move : possibleMoves) {
         List<StateChance> possibleStates = gameState.getPossibleState(move);
         for (StateChance stateChance : possibleStates) {
+          if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
+            continue;
+          }
           EventScore result = minimax(stateChance.gameState(), depth - 1, false);
           result.setScore(result.getScore() * stateChance.chance());
           if (result.getScore() < bestResult.getScore()) {

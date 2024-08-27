@@ -87,6 +87,7 @@ public class ExpectimaxMovementBot extends MovementBot {
             possibleMoves = gameState.getPossibleMoves();
             maximizing = !maximizing;
         }
+        removeUnnecessaryMoves(possibleMoves);
 
         return maximizing
                 ? maximize(gameState, depth, possibleMoves)
@@ -107,11 +108,15 @@ public class ExpectimaxMovementBot extends MovementBot {
             for (MakeMoveEvent move : possibleMoves) {
                 List<StateChance> possibleStates = gameState.getPossibleState(move);
                 for (StateChance stateChance : possibleStates) {
+                    if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
+                        continue;
+                    }
                     EventScore result = expectimax(stateChance.gameState(), depth - 1, false);
                     result.setScore(result.getScore() * stateChance.chance());
                     if (result.getScore() > bestResult.getScore()) {
                         bestResult = new EventScore(move, result.getScore());
                     }
+
                 }
             }
         }catch (GameException e){
@@ -135,6 +140,9 @@ public class ExpectimaxMovementBot extends MovementBot {
             for (MakeMoveEvent move : possibleMoves) {
                 List<StateChance> possibleStates = gameState.getPossibleState(move);
                 for (StateChance stateChance : possibleStates) {
+                    if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
+                        continue;
+                    }
                     EventScore result = expectimax(stateChance.gameState(), depth - 1, true);
                     result.setScore(result.getScore() * stateChance.chance());
                     expectedValue += result.getScore();
