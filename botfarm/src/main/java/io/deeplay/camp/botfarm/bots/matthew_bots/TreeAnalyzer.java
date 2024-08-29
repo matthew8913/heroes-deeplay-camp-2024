@@ -2,11 +2,14 @@ package io.deeplay.camp.botfarm.bots.matthew_bots;
 
 import lombok.Getter;
 
-/** Класс, аналиирующй деревья ботов. */
+import java.sql.Time;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/** Класс, анализирующий деревья ботов. */
 @Getter
 public class TreeAnalyzer {
   /** Количество вершин */
-  private int nodesCount = 0;
+  private final AtomicInteger nodesCount = new AtomicInteger(0);
 
   /** Время начала генерации хода. */
   private long moveStartTime = 0L;
@@ -27,7 +30,7 @@ public class TreeAnalyzer {
   /**
    * Метод возвращающий разницу между moveEndTime и moveStartTime.
    *
-   * @return время хода.
+   * @return время хода в наносекундах.
    */
   public long getMoveTime() {
     return moveEndTime - moveStartTime;
@@ -35,7 +38,14 @@ public class TreeAnalyzer {
 
   /** Метод, инкрементирующий количество вершин. */
   public void incrementNodesCount() {
-    nodesCount++;
+    nodesCount.incrementAndGet();
+  }
+
+  /** Метод для сброса статистики. */
+  public void resetStatistics() {
+    nodesCount.set(0);
+    moveStartTime = 0L;
+    moveEndTime = 0L;
   }
 
   public void printStatistics() {

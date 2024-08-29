@@ -2,20 +2,21 @@ package io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage;
 
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
 import io.deeplay.camp.game.entities.Position;
+import io.deeplay.camp.game.entities.StateChance;
 import io.deeplay.camp.game.entities.UnitType;
 import io.deeplay.camp.game.events.MakeMoveEvent;
+import io.deeplay.camp.game.exceptions.GameException;
 import io.deeplay.camp.game.mechanics.GameState;
+import java.util.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
-
-/** Абстрактный бота для игрового состояния movement. */
+/** Абстрактный класс бота для игрового состояния movement. */
 @Setter
 @Getter
 public abstract class MovementBot {
-  TreeAnalyzer treeAnalyzer;
   public static final double BAD_BRANCH_PROBABILITY = 0.2;
+  TreeAnalyzer treeAnalyzer;
   public MovementBot(TreeAnalyzer treeAnalyzer) {
     this.treeAnalyzer = treeAnalyzer;
   }
@@ -47,6 +48,26 @@ public abstract class MovementBot {
         }
       }
     }
+  }
+
+  /**
+   * Метод, собирающий список возможных состояний на следующем уровне по PossibleMoves. Также отсекает плохие варианты.
+   * @param gameState игровое состояние
+   * @param possibleMoves возможные ходы
+   * @return сформированный список возможных состояний
+   * @throws GameException если getPossibleState не может применить ход
+   */
+  protected List<MoveStateProbability> collectPossibleStates(GameState gameState, List<MakeMoveEvent> possibleMoves) throws GameException {
+    List<MoveStateProbability> possibleStates = new ArrayList<>();
+    for (MakeMoveEvent move : possibleMoves) {
+      List<StateChance> possibleOptions = gameState.getPossibleState(move);
+      for (StateChance stateChance : possibleOptions) {
+        if ((stateChance.chance() > BAD_BRANCH_PROBABILITY)) {
+          possibleStates.add(new MoveStateProbability(stateChance.gameState(), stateChance.chance(), new MakeMoveEvent(move.getFrom(), move.getTo(), move.getAttacker().getCopy())));
+        }
+      }
+    }
+    return possibleStates;
   }
 }
 
