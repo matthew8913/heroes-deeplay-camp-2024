@@ -15,16 +15,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Бот, использующий классический алгоритм минимакс в рамках игрового состояния movement. */
-public class MinimaxMovementBot extends MovementBot {
-  private static final Logger logger = LoggerFactory.getLogger(MinimaxMovementBot.class);
+public class MinimaxBot extends MovementBot {
+  private static final Logger logger = LoggerFactory.getLogger(MinimaxBot.class);
+
   /** Максимальная оценка игрового состояния. */
   private static final double MAX_COST = GameStateEvaluator.MAX_COST;
+
   /** Минимальная оценка игрового состояния. */
   private static final double MIN_COST = GameStateEvaluator.MIN_COST;
+
   /** Оценщик игровых состояний. */
   private final GameStateEvaluator gameStateEvaluator;
+
   /** Максимальная глубина. */
   private final int maxDepth;
+
   /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
   private PlayerType maximizingPlayerType;
 
@@ -33,7 +38,7 @@ public class MinimaxMovementBot extends MovementBot {
    *
    * @param maxDepth Максимальная глубина дерева.
    */
-  public MinimaxMovementBot(int maxDepth) {
+  public MinimaxBot(int maxDepth) {
     super(new TreeAnalyzer());
     this.maxDepth = maxDepth;
     gameStateEvaluator = new BaseEvaluator();
@@ -80,7 +85,6 @@ public class MinimaxMovementBot extends MovementBot {
     }
     removeUnnecessaryMoves(possibleMoves);
 
-
     return maximizing
         ? maximize(gameState, depth, possibleMoves)
         : minimize(gameState, depth, possibleMoves);
@@ -100,7 +104,7 @@ public class MinimaxMovementBot extends MovementBot {
       for (MakeMoveEvent move : possibleMoves) {
         List<StateChance> possibleStates = gameState.getPossibleState(move);
         for (StateChance stateChance : possibleStates) {
-          if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
+          if (stateChance.chance() < BAD_BRANCH_PROBABILITY) {
             continue;
           }
           EventScore result = minimax(stateChance.gameState(), depth - 1, true);
@@ -131,7 +135,7 @@ public class MinimaxMovementBot extends MovementBot {
       for (MakeMoveEvent move : possibleMoves) {
         List<StateChance> possibleStates = gameState.getPossibleState(move);
         for (StateChance stateChance : possibleStates) {
-          if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
+          if (stateChance.chance() < BAD_BRANCH_PROBABILITY) {
             continue;
           }
           EventScore result = minimax(stateChance.gameState(), depth - 1, false);

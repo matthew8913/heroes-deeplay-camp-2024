@@ -24,7 +24,7 @@ class MovementBotTest {
     similarMoves.add(
         new MakeMoveEvent(
             new Position(0, 1), new Position(1, 1), new Knight(PlayerType.FIRST_PLAYER)));
-    MovementBot bot = new MinimaxMovementBot(1);
+    MovementBot bot = new MultiThreadMinimaxBot(1);
     bot.removeUnnecessaryMoves(similarMoves);
     assertEquals(1, similarMoves.size());
   }
@@ -38,7 +38,7 @@ class MovementBotTest {
     similarMoves.add(
         new MakeMoveEvent(
             new Position(0, 1), new Position(1, 1), new Knight(PlayerType.FIRST_PLAYER)));
-    MovementBot bot = new MinimaxMovementBot(1);
+    MovementBot bot = new MultiThreadMinimaxBot(1);
     bot.removeUnnecessaryMoves(similarMoves);
     assertEquals(2, similarMoves.size());
   }
@@ -64,7 +64,7 @@ class MovementBotTest {
     similarMoves.add(
         new MakeMoveEvent(
             new Position(0, 1), new Position(2, 1), new Healer(PlayerType.FIRST_PLAYER)));
-    MovementBot bot = new MinimaxMovementBot(1);
+    MovementBot bot = new MultiThreadMinimaxBot(1);
     bot.removeUnnecessaryMoves(similarMoves);
     assertEquals(3, similarMoves.size());
   }

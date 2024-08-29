@@ -65,7 +65,6 @@ public abstract class Unit implements GeneralBuff {
   }
 
   @JsonIgnore
-
   public abstract Unit getCopy();
 
   public void setAttack(AttackType attackType) {

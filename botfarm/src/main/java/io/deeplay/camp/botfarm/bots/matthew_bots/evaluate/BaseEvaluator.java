@@ -65,7 +65,7 @@ public class BaseEvaluator implements GameStateEvaluator {
    * @return оценку состояния.
    */
   @Override
-  public double evaluate(GameState gameState, PlayerType maximizingPlayerType) {
+  synchronized public double evaluate(GameState gameState, PlayerType maximizingPlayerType) {
     if (gameState.getGameStage() == GameStage.ENDED) {
       return evaluateGameEnd(gameState, maximizingPlayerType);
     }

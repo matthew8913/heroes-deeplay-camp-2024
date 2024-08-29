@@ -4,18 +4,19 @@ import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.BaseEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.EventScore;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.GameStateEvaluator;
-import io.deeplay.camp.game.entities.StateChance;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.exceptions.GameException;
 import io.deeplay.camp.game.mechanics.GameStage;
 import io.deeplay.camp.game.mechanics.GameState;
 import io.deeplay.camp.game.mechanics.PlayerType;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExpectimaxMovementBot extends MovementBot {
-    private static final Logger logger = LoggerFactory.getLogger(ExpectimaxMovementBot.class);
+public class ExpectimaxBot extends MovementBot {
+    private static final Logger logger = LoggerFactory.getLogger(MultiThreadExpectimaxBot.class);
     /**
      * Максимальная оценка игрового состояния.
      */
@@ -42,7 +43,7 @@ public class ExpectimaxMovementBot extends MovementBot {
      *
      * @param maxDepth Максимальная глубина дерева.
      */
-    public ExpectimaxMovementBot(int maxDepth){
+    public ExpectimaxBot(int maxDepth){
         super(new TreeAnalyzer());
         this.maxDepth = maxDepth;
         this.gameStateEvaluator =new BaseEvaluator();
@@ -81,13 +82,15 @@ public class ExpectimaxMovementBot extends MovementBot {
         List<MakeMoveEvent> possibleMoves = gameState.getPossibleMoves();
         if (possibleMoves.isEmpty()) {
             if (depth == maxDepth) {
-                return new EventScore(null, maximizing ? MIN_COST : MAX_COST);
+                return new EventScore(null, maximizing ? MIN_COST : 0);
             }
             gameState.changeCurrentPlayer();
             possibleMoves = gameState.getPossibleMoves();
             maximizing = !maximizing;
+
         }
         removeUnnecessaryMoves(possibleMoves);
+
 
         return maximizing
                 ? maximize(gameState, depth, possibleMoves)
@@ -101,23 +104,22 @@ public class ExpectimaxMovementBot extends MovementBot {
      * @param possibleMoves Возможные ходы.
      * @return ивент и его оценку.
      */
-    private EventScore maximize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves)
-            {
+    private EventScore maximize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves) {
         EventScore bestResult = new EventScore(null, MIN_COST);
         try {
-            for (MakeMoveEvent move : possibleMoves) {
-                List<StateChance> possibleStates = gameState.getPossibleState(move);
-                for (StateChance stateChance : possibleStates) {
-                    if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
-                        continue;
-                    }
-                    EventScore result = expectimax(stateChance.gameState(), depth - 1, false);
-                    result.setScore(result.getScore() * stateChance.chance());
-                    if (result.getScore() > bestResult.getScore()) {
-                        bestResult = new EventScore(move, result.getScore());
-                    }
-
+            List<Double> values = new ArrayList<>();
+            List<MoveStateProbability> possibleStates = collectPossibleStates(gameState, possibleMoves);
+            for(MoveStateProbability possibleState : possibleStates){
+                EventScore result = expectimax(possibleState.getGameState(), depth - 1, true);
+                result.setScore(result.getScore() * possibleState.getProbability());
+                values.add(result.getScore()*possibleState.getProbability());
+                if (result.getScore() > bestResult.getScore()) {
+                    bestResult = new EventScore(possibleState.getLastMove(), result.getScore());
                 }
+            }
+            if(depth == maxDepth){
+                Collections.sort(values);
+                System.out.println(values);
             }
         }catch (GameException e){
             logger.error("Ошибка в применении хода к игровому состоянию!");
@@ -137,18 +139,15 @@ public class ExpectimaxMovementBot extends MovementBot {
         double expectedValue = 0;
         EventScore bestResult = new EventScore(null, 0);
         try {
-            for (MakeMoveEvent move : possibleMoves) {
-                List<StateChance> possibleStates = gameState.getPossibleState(move);
-                for (StateChance stateChance : possibleStates) {
-                    if(stateChance.chance()<BAD_BRANCH_PROBABILITY){
-                        continue;
-                    }
-                    EventScore result = expectimax(stateChance.gameState(), depth - 1, true);
-                    result.setScore(result.getScore() * stateChance.chance());
-                    expectedValue += result.getScore();
-                }
+            List<MoveStateProbability> possibleStates = collectPossibleStates(gameState, possibleMoves);
+            for (MoveStateProbability state : possibleStates) {
+                EventScore result = expectimax(state.getGameState(), depth - 1, false);
+                expectedValue += result.getScore() * state.getProbability();
             }
-            expectedValue = expectedValue / (possibleMoves.size() * 2);
+
+            System.out.println("Exp: " + expectedValue+ "Size: " + possibleMoves.size());
+
+            expectedValue /= possibleStates.size();
             bestResult.setScore(expectedValue);
         }catch(GameException e) {
             logger.error("Ошибка в применении хода к игровому состоянию!");
