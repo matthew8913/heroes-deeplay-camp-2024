@@ -1,9 +1,7 @@
 package io.deeplay.camp.botfarm.bots.matthew_bots;
 
-import lombok.Getter;
-
-import java.sql.Time;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Getter;
 
 /** Класс, анализирующий деревья ботов. */
 @Getter
@@ -39,13 +37,6 @@ public class TreeAnalyzer {
   /** Метод, инкрементирующий количество вершин. */
   public void incrementNodesCount() {
     nodesCount.incrementAndGet();
-  }
-
-  /** Метод для сброса статистики. */
-  public void resetStatistics() {
-    nodesCount.set(0);
-    moveStartTime = 0L;
-    moveEndTime = 0L;
   }
 
   public void printStatistics() {

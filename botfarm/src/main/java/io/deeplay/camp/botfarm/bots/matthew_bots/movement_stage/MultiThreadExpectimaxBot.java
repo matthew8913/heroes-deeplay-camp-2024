@@ -1,5 +1,8 @@
 package io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage;
 
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.collectPossibleStates;
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.removeUnnecessaryMoves;
+
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.BaseEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.EventScore;
@@ -19,9 +22,6 @@ import org.slf4j.LoggerFactory;
 public class MultiThreadExpectimaxBot extends MovementBot {
   private static final Logger logger = LoggerFactory.getLogger(MultiThreadExpectimaxBot.class);
 
-  /** Максимальная оценка игрового состояния. */
-  private static final double MAX_COST = GameStateEvaluator.MAX_COST;
-
   /** Минимальная оценка игрового состояния. */
   private static final double MIN_COST = GameStateEvaluator.MIN_COST;
 
@@ -34,7 +34,7 @@ public class MultiThreadExpectimaxBot extends MovementBot {
   /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
   private PlayerType maximizingPlayerType;
 
-  private ForkJoinPool forkJoinPool;
+  private final ForkJoinPool forkJoinPool;
 
   /**
    * Конструктор.
@@ -60,7 +60,7 @@ public class MultiThreadExpectimaxBot extends MovementBot {
     maximizingPlayerType = gameState.getCurrentPlayer();
     treeAnalyzer.startMoveStopWatch();
     ExpectimaxTask expectimaxTask =
-        new ExpectimaxTask(new MoveStateProbability(gameState.getCopy(), 1, null), maxDepth, true);
+        new ExpectimaxTask(new State(gameState.getCopy(), 1, null), maxDepth, true);
     EventScore result = forkJoinPool.invoke(expectimaxTask);
     treeAnalyzer.endMoveStopWatch();
     return (MakeMoveEvent) result.getEvent();
@@ -74,11 +74,11 @@ public class MultiThreadExpectimaxBot extends MovementBot {
     private boolean maximizing;
 
     public ExpectimaxTask(
-        MoveStateProbability moveStateProbability, int depth, boolean maximizing) {
-      gameState = moveStateProbability.getGameState();
+            io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State state, int depth, boolean maximizing) {
+      gameState = state.getGameState();
       this.depth = depth;
-      lastMove = moveStateProbability.getLastMove();
-      probability = moveStateProbability.getProbability();
+      lastMove = state.getLastMove();
+      probability = state.getProbability();
       this.maximizing = maximizing;
     }
 
@@ -122,9 +122,9 @@ public class MultiThreadExpectimaxBot extends MovementBot {
     private EventScore maximize(GameState gameState, int depth, List<MakeMoveEvent> possibleMoves) {
       EventScore bestResult = new EventScore(null, MIN_COST);
       try {
-        List<MoveStateProbability> possibleStates = collectPossibleStates(gameState, possibleMoves);
+        List<io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State> possibleStates = collectPossibleStates(gameState, possibleMoves);
         List<ExpectimaxTask> tasks = new ArrayList<>();
-        for (MoveStateProbability state : possibleStates) {
+        for (io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State state : possibleStates) {
           ExpectimaxTask task = new ExpectimaxTask(state, depth - 1, true);
           tasks.add(task);
           task.fork();
@@ -154,8 +154,8 @@ public class MultiThreadExpectimaxBot extends MovementBot {
       double expectedValue = 0;
       EventScore bestResult = new EventScore(null, 0);
       try {
-        List<MoveStateProbability> possibleStates = collectPossibleStates(gameState, possibleMoves);
-        for (MoveStateProbability state : possibleStates) {
+        List<io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State> possibleStates = collectPossibleStates(gameState, possibleMoves);
+        for (io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State state : possibleStates) {
           ExpectimaxTask task = new ExpectimaxTask(state, depth - 1, false);
           EventScore result = task.compute();
           expectedValue += result.getScore() * state.getProbability();

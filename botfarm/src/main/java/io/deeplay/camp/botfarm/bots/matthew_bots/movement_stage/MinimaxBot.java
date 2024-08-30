@@ -1,5 +1,8 @@
 package io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage;
 
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.BAD_BRANCH_PROBABILITY;
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.removeUnnecessaryMoves;
+
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.BaseEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.EventScore;
