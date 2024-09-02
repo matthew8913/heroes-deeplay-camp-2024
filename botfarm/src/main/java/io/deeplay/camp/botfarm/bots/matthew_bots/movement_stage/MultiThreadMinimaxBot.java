@@ -115,7 +115,7 @@ public class MultiThreadMinimaxBot extends MovementBot {
           EventScore result = task.join();
           result.setScore(result.getScore() * task.state.getProbability());
           if (result.getScore() > bestResult.getScore()) {
-            bestResult = new EventScore(task.state.getLastMove(), result.getScore());
+            bestResult = new EventScore((MakeMoveEvent)task.state.getLastMove(), result.getScore());
           }
         }
       } catch (GameException e) {
@@ -148,7 +148,7 @@ public class MultiThreadMinimaxBot extends MovementBot {
           EventScore result = task.join();
           result.setScore(result.getScore() * task.state.getProbability());
           if (result.getScore() < bestResult.getScore()) {
-            bestResult = new EventScore(task.state.getLastMove(), result.getScore());
+            bestResult = new EventScore((MakeMoveEvent)task.state.getLastMove(), result.getScore());
           }
         }
       } catch (GameException e) {

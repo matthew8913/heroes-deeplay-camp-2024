@@ -77,7 +77,7 @@ public class MultiThreadExpectimaxBot extends MovementBot {
             io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State state, int depth, boolean maximizing) {
       gameState = state.getGameState();
       this.depth = depth;
-      lastMove = state.getLastMove();
+      lastMove = (MakeMoveEvent)state.getLastMove();
       probability = state.getProbability();
       this.maximizing = maximizing;
     }
