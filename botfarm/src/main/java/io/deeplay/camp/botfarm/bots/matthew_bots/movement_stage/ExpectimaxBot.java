@@ -114,7 +114,7 @@ public class ExpectimaxBot extends MovementBot {
                 result.setScore(result.getScore() * possibleState.getProbability());
                 values.add(result.getScore()*possibleState.getProbability());
                 if (result.getScore() > bestResult.getScore()) {
-                    bestResult = new EventScore(possibleState.getLastMove(), result.getScore());
+                    bestResult = new EventScore((MakeMoveEvent)possibleState.getLastMove(), result.getScore());
                 }
             }
             if(depth == maxDepth){

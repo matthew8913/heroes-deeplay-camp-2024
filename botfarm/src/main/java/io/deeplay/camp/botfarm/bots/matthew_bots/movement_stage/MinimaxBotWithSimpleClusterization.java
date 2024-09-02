@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Бот, использующий классический алгоритм минимакс в рамках игрового состояния movement. */
-public class MinimaxBotWithClusterization extends MovementBot {
-    private static final Logger logger = LoggerFactory.getLogger(MinimaxBotWithClusterization.class);
+public class MinimaxBotWithSimpleClusterization extends MovementBot {
+    private static final Logger logger = LoggerFactory.getLogger(MinimaxBotWithSimpleClusterization.class);
 
     /** Максимальная оценка игрового состояния. */
     private static final double MAX_COST = GameStateEvaluator.MAX_COST;
@@ -46,7 +46,7 @@ public class MinimaxBotWithClusterization extends MovementBot {
      *
      * @param maxDepth Максимальная глубина дерева.
      */
-    public MinimaxBotWithClusterization(int maxDepth, int clustersAmount) {
+    public MinimaxBotWithSimpleClusterization(int maxDepth, int clustersAmount) {
         super(new TreeAnalyzer());
         this.maxDepth = maxDepth;
         gameStateEvaluator = new BaseEvaluator();
@@ -117,7 +117,7 @@ public class MinimaxBotWithClusterization extends MovementBot {
                 EventScore result = minimax(possibleState.getGameState(), depth - 1, true);
                 result.setScore(result.getScore() * possibleState.getProbability());
                 if (result.getScore() > bestResult.getScore()) {
-                    bestResult = new EventScore(possibleState.getLastMove(), result.getScore());
+                    bestResult = new EventScore((MakeMoveEvent)possibleState.getLastMove(), result.getScore());
                 }
             }
 
@@ -144,7 +144,7 @@ public class MinimaxBotWithClusterization extends MovementBot {
                 EventScore result = minimax(possibleState.getGameState(), depth - 1, false);
                 result.setScore(result.getScore() * possibleState.getProbability());
                 if (result.getScore() < bestResult.getScore()) {
-                    bestResult = new EventScore(possibleState.getLastMove(), result.getScore());
+                    bestResult = new EventScore((MakeMoveEvent)possibleState.getLastMove(), result.getScore());
                 }
             }
         } catch (GameException e) {
@@ -171,6 +171,5 @@ public class MinimaxBotWithClusterization extends MovementBot {
         List<CentroidCluster<StateClusterable>> clusters = clusterization.clusterize(statesClusterables, clustersAmount);
         return clusterization.pickRepresentatives(clusters,representativesAmount);
     }
-
 
 }
