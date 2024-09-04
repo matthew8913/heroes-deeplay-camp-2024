@@ -8,7 +8,7 @@ import java.util.List;
 public class RandomMovementBot extends MovementBot {
 
     public RandomMovementBot() {
-        super(new TreeAnalyzer());
+        super(new TreeAnalyzer(),0);
     }
 
     @Override

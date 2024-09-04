@@ -25,13 +25,11 @@ public class MultiThreadMinimaxBot extends MovementBot {
   private static final double MAX_COST = GameStateEvaluator.MAX_COST;
   private static final double MIN_COST = GameStateEvaluator.MIN_COST;
   private final GameStateEvaluator gameStateEvaluator;
-  private final int maxDepth;
   private final ForkJoinPool forkJoinPool;
   private PlayerType maximizingPlayerType;
 
   public MultiThreadMinimaxBot(int maxDepth) {
-    super(new TreeAnalyzer());
-    this.maxDepth = maxDepth;
+    super(new TreeAnalyzer(), maxDepth);
     this.gameStateEvaluator = new BaseEvaluator();
     this.forkJoinPool = new ForkJoinPool();
   }

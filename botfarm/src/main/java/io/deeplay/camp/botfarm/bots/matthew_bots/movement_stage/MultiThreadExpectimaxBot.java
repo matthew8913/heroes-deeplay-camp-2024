@@ -28,9 +28,6 @@ public class MultiThreadExpectimaxBot extends MovementBot {
   /** Оценщик игровых состояний. */
   private final GameStateEvaluator gameStateEvaluator;
 
-  /** Максимальная глубина. */
-  private final int maxDepth;
-
   /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
   private PlayerType maximizingPlayerType;
 
@@ -42,8 +39,7 @@ public class MultiThreadExpectimaxBot extends MovementBot {
    * @param maxDepth Максимальная глубина дерева.
    */
   public MultiThreadExpectimaxBot(int maxDepth) {
-    super(new TreeAnalyzer());
-    this.maxDepth = maxDepth;
+    super(new TreeAnalyzer(), maxDepth);
     this.gameStateEvaluator = new BaseEvaluator();
     treeAnalyzer = new TreeAnalyzer();
     forkJoinPool = new ForkJoinPool();
