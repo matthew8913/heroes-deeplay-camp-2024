@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Бот, использующий классический алгоритм минимакс в рамках игрового состояния movement. */
-public class MinimaxBotWithSimpleClusterization extends MovementBot {
-    private static final Logger logger = LoggerFactory.getLogger(MinimaxBotWithSimpleClusterization.class);
+public class MinimaxWithSimpleClusterizationBot extends MovementBot {
+    private static final Logger logger = LoggerFactory.getLogger(MinimaxWithSimpleClusterizationBot.class);
 
     /** Максимальная оценка игрового состояния. */
     private static final double MAX_COST = GameStateEvaluator.MAX_COST;
@@ -34,8 +34,7 @@ public class MinimaxBotWithSimpleClusterization extends MovementBot {
     /** Оценщик игровых состояний. */
     private final GameStateEvaluator gameStateEvaluator;
 
-    /** Максимальная глубина. */
-    private final int maxDepth;
+
     /** Кластеризация, используемая ботом */
     private final Clusterization clusterization;
     /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
@@ -46,9 +45,8 @@ public class MinimaxBotWithSimpleClusterization extends MovementBot {
      *
      * @param maxDepth Максимальная глубина дерева.
      */
-    public MinimaxBotWithSimpleClusterization(int maxDepth, int clustersAmount) {
-        super(new TreeAnalyzer());
-        this.maxDepth = maxDepth;
+    public MinimaxWithSimpleClusterizationBot(int maxDepth, int clustersAmount) {
+        super(new TreeAnalyzer(), maxDepth);
         gameStateEvaluator = new BaseEvaluator();
         clusterization = new ValueClusterization();
         this.clustersAmount = clustersAmount;

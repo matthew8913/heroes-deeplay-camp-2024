@@ -6,8 +6,10 @@ import io.deeplay.camp.botfarm.bots.matthew_bots.placement_stage.PlacementBot;
 import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.events.PlaceUnitEvent;
 import io.deeplay.camp.game.mechanics.GameState;
-
+import lombok.Getter;
 /** Реализация бота matthew8913. */
+
+@Getter
 public class MatthewsBot extends Bot {
   /** Бот этапа расстновки. */
   private final PlacementBot placementBot;
