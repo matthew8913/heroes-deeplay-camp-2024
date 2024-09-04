@@ -33,9 +33,6 @@ public class AlphaBetaMinimaxBot extends MovementBot {
   /** Оценщик игровых состояний. */
   private final GameStateEvaluator gameStateEvaluator;
 
-  /** Максимальная глубина. */
-  private final int maxDepth;
-
   /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
   private PlayerType maximizingPlayerType;
 
@@ -45,8 +42,7 @@ public class AlphaBetaMinimaxBot extends MovementBot {
    * @param maxDepth Максимальная глубина дерева.
    */
   public AlphaBetaMinimaxBot(int maxDepth) {
-    super(new TreeAnalyzer());
-    this.maxDepth = maxDepth;
+    super(new TreeAnalyzer(), maxDepth);
     gameStateEvaluator = new BaseEvaluator();
   }
 

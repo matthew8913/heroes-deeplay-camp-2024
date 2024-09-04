@@ -871,7 +871,6 @@ public class GameState {
                     new PlaceUnitEvent(
                             0, 2, new Knight(PlayerType.SECOND_PLAYER), PlayerType.SECOND_PLAYER, false, false));
             makeChangePlayer(new ChangePlayerEvent(PlayerType.SECOND_PLAYER));
-
         } catch (GameException e) {
             logger.info("Не удалась стандартная расстановка!");
         }
