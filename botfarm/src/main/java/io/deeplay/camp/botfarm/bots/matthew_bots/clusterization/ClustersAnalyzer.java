@@ -46,6 +46,51 @@ public class ClustersAnalyzer {
     return wcss;
   }
 
+  public static double calculateDaviesBouldinIndex(List<CentroidCluster<StateClusterable>> clusters) {
+    EuclideanDistance distance = new EuclideanDistance();
+    int k = clusters.size();
+    double[] avgDistanceWithinCluster = new double[k];
+    double[][] distanceBetweenCentroids = new double[k][k];
+    double[] maxRatios = new double[k];
+
+    // Calculate average distance within each cluster
+    for (int i = 0; i < k; i++) {
+      CentroidCluster<StateClusterable> cluster = clusters.get(i);
+      double totalDistance = 0.0;
+      for (StateClusterable point : cluster.getPoints()) {
+        totalDistance += distance.compute(point.getPoint(), cluster.getCenter().getPoint());
+      }
+      avgDistanceWithinCluster[i] = totalDistance / cluster.getPoints().size();
+    }
+
+    // Calculate distance between centroids
+    for (int i = 0; i < k; i++) {
+      for (int j = i + 1; j < k; j++) {
+        distanceBetweenCentroids[i][j] = distance.compute(clusters.get(i).getCenter().getPoint(), clusters.get(j).getCenter().getPoint());
+        distanceBetweenCentroids[j][i] = distanceBetweenCentroids[i][j];
+      }
+    }
+
+    // Calculate Davies-Bouldin Index
+    for (int i = 0; i < k; i++) {
+      maxRatios[i] = 0.0;
+      for (int j = 0; j < k; j++) {
+        if (i != j) {
+          double ratio = (avgDistanceWithinCluster[i] + avgDistanceWithinCluster[j]) / distanceBetweenCentroids[i][j];
+          if (ratio > maxRatios[i]) {
+            maxRatios[i] = ratio;
+          }
+        }
+      }
+    }
+
+    double dbi = 0.0;
+    for (int i = 0; i < k; i++) {
+      dbi += maxRatios[i];
+    }
+    return dbi / k;
+  }
+
   /**
    * Метод для чтения игровых состояний из файла.
    *
@@ -140,11 +185,40 @@ public class ClustersAnalyzer {
     List<GameState> gameStates = readGameStatesFromFile(filePath);
 
     List<Double> averageWCSS = new ArrayList<>();
+    List<Double> daviesBouldinIndices = new ArrayList<>();
+
     for (int clustersAmount = 2; clustersAmount <= 10; clustersAmount++) {
-      double avgWCSS = calculateAverageWCSS(gameStates, clustersAmount);
-      averageWCSS.add(avgWCSS);
+      double totalWCSS = 0.0;
+      double totalDaviesBouldinIndex = 0.0;
+      for (GameState gameState : gameStates) {
+        GameState gameStateCopy = gameState.getCopy();
+        gameStateCopy.setDefaultPlacementWithoutMage();
+        List<MakeMoveEvent> possibleMoves = gameStateCopy.getPossibleMoves();
+        MovementBotUtil.removeUnnecessaryMoves(possibleMoves);
+        List<State> possibleStates =
+                MovementBotUtil.collectPossibleStates(gameStateCopy, possibleMoves);
+        List<StateClusterable> statesClusterables =
+                ClusterizationUtil.getClusterableStates(
+                        possibleStates, new BaseEvaluator(), PlayerType.FIRST_PLAYER);
+        Clusterization clusterization = new ValueClusterization();
+        List<CentroidCluster<StateClusterable>> clusters =
+                clusterization.clusterize(statesClusterables, clustersAmount);
+
+        double wcss = 0.0;
+        for (CentroidCluster<StateClusterable> cluster : clusters) {
+          wcss += calculateWCSS(cluster);
+        }
+        totalWCSS += wcss;
+        totalDaviesBouldinIndex += calculateDaviesBouldinIndex(clusters);
+      }
+      averageWCSS.add(totalWCSS / (gameStates.size() * clustersAmount));
+      daviesBouldinIndices.add(totalDaviesBouldinIndex / gameStates.size());
     }
 
     plotAverageWCSS(averageWCSS);
+
+    for (int i = 0; i < daviesBouldinIndices.size(); i++) {
+      System.out.println("Clusters: " + (i + 2) + " Davies-Bouldin Index: " + daviesBouldinIndices.get(i));
+    }
   }
 }
