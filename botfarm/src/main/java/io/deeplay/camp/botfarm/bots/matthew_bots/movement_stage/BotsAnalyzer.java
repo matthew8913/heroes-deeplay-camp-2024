@@ -6,6 +6,14 @@ import io.deeplay.camp.game.events.MakeMoveEvent;
 import io.deeplay.camp.game.mechanics.GameStage;
 import io.deeplay.camp.game.mechanics.GameState;
 import io.deeplay.camp.game.mechanics.PlayerType;
+import java.awt.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.SneakyThrows;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
@@ -15,15 +23,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 public class BotsAnalyzer {
     final String path = "botfarm/src/main/resources";
     File moveTimeData;
@@ -31,9 +30,9 @@ public class BotsAnalyzer {
     File winPercentsWithCachePlacement;
 
     public BotsAnalyzer() {
-        this.moveTimeData = new File(path, "moveTimeData.txt");
-        this.winPercentsWithRandomPlacement = new File(path, "winPercentsWithRandomPlacement.txt");
-        this.winPercentsWithCachePlacement = new File(path, "winPercentsWithCachePlacement.txt");
+        this.moveTimeData = new File(path, "matthews_bots/moveTimeData.txt");
+        this.winPercentsWithRandomPlacement = new File(path, "matthews_bots/winPercentsWithRandomPlacement.txt");
+        this.winPercentsWithCachePlacement = new File(path, "matthews_bots/winPercentsWithCachePlacement.txt");
     }
 
     public static void main(String[] args) throws IOException {

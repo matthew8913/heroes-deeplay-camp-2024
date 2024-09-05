@@ -1,9 +1,8 @@
 package io.deeplay.camp.botfarm.bots.matthew_bots.clusterization;
 
 import io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.State;
-import org.apache.commons.math3.ml.clustering.CentroidCluster;
-
 import java.util.List;
+import org.apache.commons.math3.ml.clustering.CentroidCluster;
 
 /** Интерфейс кластеризации */
 public interface Clusterization {

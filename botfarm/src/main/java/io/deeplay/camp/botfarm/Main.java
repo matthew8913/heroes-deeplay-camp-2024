@@ -4,6 +4,7 @@ package io.deeplay.camp.botfarm;
 import io.deeplay.camp.botfarm.bots.RandomBot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.MatthewsBot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.AlphaBetaMinimaxBot;
+import io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MonteCarloMinimaxBot;
 import io.deeplay.camp.botfarm.bots.matthew_bots.placement_stage.CachePlacementBot;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class Main {
 
     for(int i = 0; i<1;i++){
       BotFight botFight = new BotFight(new MatthewsBot(new CachePlacementBot(), new AlphaBetaMinimaxBot(4)), new RandomBot(), 1000, true);
-
+      BotFight botFight1 = new BotFight(new MatthewsBot(new CachePlacementBot(), new MonteCarloMinimaxBot(4)), new RandomBot(), 1000, true);
     }
 
   }

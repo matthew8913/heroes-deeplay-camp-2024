@@ -1,5 +1,8 @@
 package io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage;
 
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.collectPossibleStates;
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.removeUnnecessaryMoves;
+
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.BaseEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.EventScore;
@@ -15,9 +18,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.collectPossibleStates;
-import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.removeUnnecessaryMoves;
 
 /** Бот, использующий классический алгоритм минимакс в рамках игрового состояния movement. */
 public class MultiThreadMinimaxBot extends MovementBot {

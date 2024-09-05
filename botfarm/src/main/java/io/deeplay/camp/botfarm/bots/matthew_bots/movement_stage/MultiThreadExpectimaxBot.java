@@ -27,11 +27,9 @@ public class MultiThreadExpectimaxBot extends MovementBot {
 
   /** Оценщик игровых состояний. */
   private final GameStateEvaluator gameStateEvaluator;
-
+  private final ForkJoinPool forkJoinPool;
   /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
   private PlayerType maximizingPlayerType;
-
-  private final ForkJoinPool forkJoinPool;
 
   /**
    * Конструктор.

@@ -6,11 +6,10 @@ import org.apache.commons.math3.ml.clustering.Clusterable;
 
 /** Игровое состояние + его оценка. */
 public class StateClusterable implements Clusterable {
-  /** Игровое состояние. */
-  @Getter private State state;
-
   /** Координаты. В нашем случае пространство - одномерное. */
   private final double[] coordinates;
+  /** Игровое состояние. */
+  @Getter private State state;
 
   /**
    * Конструктор

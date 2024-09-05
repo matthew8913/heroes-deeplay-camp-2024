@@ -12,12 +12,11 @@ import lombok.Setter;
 public abstract class MovementBot {
   int maxDepth;
   TreeAnalyzer treeAnalyzer;
+
   public MovementBot(TreeAnalyzer treeAnalyzer, int maxDepth) {
     this.maxDepth = maxDepth;
     this.treeAnalyzer = treeAnalyzer;
   }
+
   public abstract MakeMoveEvent generateMakeMoveEvent(GameState gameState);
-
-
 }
-

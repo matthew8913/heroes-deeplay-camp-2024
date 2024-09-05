@@ -44,7 +44,7 @@ public class PlacementCacheGenerator {
 
   /** Конструктор, загружающий файлы. */
   public PlacementCacheGenerator() {
-    resourcesDirectory = new File("botfarm/src/main/resources");
+    resourcesDirectory = new File("botfarm/src/main/resources/matthews_bots");
     if (!resourcesDirectory.exists()) {
       resourcesDirectory.mkdir();
     }
@@ -108,7 +108,7 @@ public class PlacementCacheGenerator {
       }
     }
 
-    String topFirstPlacementsFilename = "top-first-placements.json";
+    String topFirstPlacementsFilename = "matthews_bots/top-first-placements.json";
     File topPlacementsFile = new File(resourcesDirectory, topFirstPlacementsFilename);
     try (FileWriter fileWriter = new FileWriter(topPlacementsFile)) {
       while (!pq.isEmpty()) {
@@ -345,7 +345,7 @@ public class PlacementCacheGenerator {
     try (BufferedReader firstReader = new BufferedReader(new FileReader(firstPlacementsFile));
         BufferedReader secondReader = new BufferedReader(new FileReader(secondPlacementsFile));
         FileWriter csvWriter =
-            new FileWriter(new File(resourcesDirectory, "counter-placements.csv"))) {
+            new FileWriter(new File(resourcesDirectory, "matthews_bots/counter-placements.csv"))) {
 
       String firstLine;
       String secondLine;
