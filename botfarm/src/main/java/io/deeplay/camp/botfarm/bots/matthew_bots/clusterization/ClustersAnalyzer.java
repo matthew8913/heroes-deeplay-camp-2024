@@ -46,14 +46,20 @@ public class ClustersAnalyzer {
     return wcss;
   }
 
-  public static double calculateDaviesBouldinIndex(List<CentroidCluster<StateClusterable>> clusters) {
+  /**
+   * Метод для вычисления оценки Дэвиса Боулдина для списка кластеров.
+   *
+   * @param clusters список кластеров
+   * @return оценка
+   */
+  public static double calculateDaviesBouldinIndex(
+      List<CentroidCluster<StateClusterable>> clusters) {
     EuclideanDistance distance = new EuclideanDistance();
     int k = clusters.size();
     double[] avgDistanceWithinCluster = new double[k];
     double[][] distanceBetweenCentroids = new double[k][k];
     double[] maxRatios = new double[k];
 
-    // Calculate average distance within each cluster
     for (int i = 0; i < k; i++) {
       CentroidCluster<StateClusterable> cluster = clusters.get(i);
       double totalDistance = 0.0;
@@ -63,20 +69,22 @@ public class ClustersAnalyzer {
       avgDistanceWithinCluster[i] = totalDistance / cluster.getPoints().size();
     }
 
-    // Calculate distance between centroids
     for (int i = 0; i < k; i++) {
       for (int j = i + 1; j < k; j++) {
-        distanceBetweenCentroids[i][j] = distance.compute(clusters.get(i).getCenter().getPoint(), clusters.get(j).getCenter().getPoint());
+        distanceBetweenCentroids[i][j] =
+            distance.compute(
+                clusters.get(i).getCenter().getPoint(), clusters.get(j).getCenter().getPoint());
         distanceBetweenCentroids[j][i] = distanceBetweenCentroids[i][j];
       }
     }
 
-    // Calculate Davies-Bouldin Index
     for (int i = 0; i < k; i++) {
       maxRatios[i] = 0.0;
       for (int j = 0; j < k; j++) {
         if (i != j) {
-          double ratio = (avgDistanceWithinCluster[i] + avgDistanceWithinCluster[j]) / distanceBetweenCentroids[i][j];
+          double ratio =
+              (avgDistanceWithinCluster[i] + avgDistanceWithinCluster[j])
+                  / distanceBetweenCentroids[i][j];
           if (ratio > maxRatios[i]) {
             maxRatios[i] = ratio;
           }
@@ -181,7 +189,7 @@ public class ClustersAnalyzer {
   }
 
   public static void main(String[] args) throws GameException {
-    String filePath = "botfarm/src/main/resources/first-placements.json";
+    String filePath = "botfarm/src/main/resources/matthews_bots/first-placements.json";
     List<GameState> gameStates = readGameStatesFromFile(filePath);
 
     List<Double> averageWCSS = new ArrayList<>();
@@ -196,13 +204,13 @@ public class ClustersAnalyzer {
         List<MakeMoveEvent> possibleMoves = gameStateCopy.getPossibleMoves();
         MovementBotUtil.removeUnnecessaryMoves(possibleMoves);
         List<State> possibleStates =
-                MovementBotUtil.collectPossibleStates(gameStateCopy, possibleMoves);
+            MovementBotUtil.collectPossibleStates(gameStateCopy, possibleMoves);
         List<StateClusterable> statesClusterables =
-                ClusterizationUtil.getClusterableStates(
-                        possibleStates, new BaseEvaluator(), PlayerType.FIRST_PLAYER);
+            ClusterizationUtil.getClusterableStates(
+                possibleStates, new BaseEvaluator(), PlayerType.FIRST_PLAYER);
         Clusterization clusterization = new ValueClusterization();
         List<CentroidCluster<StateClusterable>> clusters =
-                clusterization.clusterize(statesClusterables, clustersAmount);
+            clusterization.clusterize(statesClusterables, clustersAmount);
 
         double wcss = 0.0;
         for (CentroidCluster<StateClusterable> cluster : clusters) {
@@ -218,7 +226,8 @@ public class ClustersAnalyzer {
     plotAverageWCSS(averageWCSS);
 
     for (int i = 0; i < daviesBouldinIndices.size(); i++) {
-      System.out.println("Clusters: " + (i + 2) + " Davies-Bouldin Index: " + daviesBouldinIndices.get(i));
+      System.out.println(
+          "Clusters: " + (i + 2) + " Davies-Bouldin Index: " + daviesBouldinIndices.get(i));
     }
   }
 }

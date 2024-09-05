@@ -8,24 +8,50 @@ import io.deeplay.camp.game.mechanics.GameStage;
 import io.deeplay.camp.game.mechanics.GameState;
 import io.deeplay.camp.game.mechanics.PlayerType;
 
+/**
+ * Функция оценки Монте-Карло. Сам метод Монте-Карло вступает в работу, когда юнитов бота осталось
+ * 1-3.
+ */
 public class MonteCarloEvaluator implements GameStateEvaluator {
-  BaseEvaluator evaluator;
-  int gamesCount;
+  /** Обычный оцениватель состояния для оценки состояний, когда юнитов много. */
+  private BaseEvaluator evaluator;
 
+  /** Количество игр для метода Монте-Карло. */
+  private int gamesCount;
+
+  /**
+   * Конструктор.
+   *
+   * @param gameCount количество игр для метода Монте-Карло.
+   */
   public MonteCarloEvaluator(int gameCount) {
     this.gamesCount = gameCount;
     evaluator = new BaseEvaluator();
   }
 
+  /**
+   * Главный метод оценки.
+   *
+   * @param gameState игровое состояние.
+   * @param maximizingPlayer максимизирующий игрок
+   * @return оценка состояния
+   */
   @Override
   public double evaluate(GameState gameState, PlayerType maximizingPlayer) {
-    if (getAliveUnitsSizeOfPlayer(gameState, maximizingPlayer) >= 3) {
+    if (getAliveUnitsSizeOfPlayer(gameState, maximizingPlayer) >= 4) {
       return evaluator.evaluate(gameState, maximizingPlayer);
     } else {
       return monteCarloEvaluate(gameState, maximizingPlayer);
     }
   }
 
+  /**
+   * Метод вычисляет количество живых юнитов игрока.
+   *
+   * @param gameState игровое состояние
+   * @param maximizingPlayer игрок
+   * @return количество живых юнитов
+   */
   private int getAliveUnitsSizeOfPlayer(GameState gameState, PlayerType maximizingPlayer) {
     int startRow = maximizingPlayer == PlayerType.FIRST_PLAYER ? 0 : Board.ROWS / 2;
     int endRow = maximizingPlayer == PlayerType.FIRST_PLAYER ? Board.ROWS / 2 : Board.ROWS;
@@ -40,6 +66,13 @@ public class MonteCarloEvaluator implements GameStateEvaluator {
     return unitsNum;
   }
 
+  /**
+   * Метод оценки по методу МОнте-Карло.
+   *
+   * @param gameState игровое состояние
+   * @param maximizingPlayer максимизирующий игрок
+   * @return оценка
+   */
   public double monteCarloEvaluate(GameState gameState, PlayerType maximizingPlayer) {
     int botWinCount = 0;
     RandomMovementBot randomMovementBot = new RandomMovementBot();
@@ -66,6 +99,6 @@ public class MonteCarloEvaluator implements GameStateEvaluator {
         botWinCount++;
       }
     }
-    return (double) botWinCount / gamesCount;
+    return (botWinCount * GameStateEvaluator.MAX_COST) / gamesCount;
   }
 }

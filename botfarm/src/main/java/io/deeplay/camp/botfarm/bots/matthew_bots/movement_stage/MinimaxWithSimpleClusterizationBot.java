@@ -37,9 +37,9 @@ public class MinimaxWithSimpleClusterizationBot extends MovementBot {
 
     /** Кластеризация, используемая ботом */
     private final Clusterization clusterization;
+    private final int clustersAmount;
     /** Максимизирующий игрок, т.е. сторона, за которую играет бот. */
     private PlayerType maximizingPlayerType;
-    private final int clustersAmount;
     /**
      * Конструктор.
      *

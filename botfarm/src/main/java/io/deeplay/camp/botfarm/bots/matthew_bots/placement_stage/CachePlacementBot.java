@@ -45,7 +45,8 @@ public class CachePlacementBot extends PlacementBot {
     Map<Unit[][], Unit[][]> counterPlacements = new HashMap<>();
     ObjectMapper objectMapper = new ObjectMapper();
     try (BufferedReader br =
-        new BufferedReader(new FileReader("botfarm/src/main/resources/counter-placements.csv"))) {
+        new BufferedReader(
+            new FileReader("botfarm/src/main/resources/matthews_bots/counter-placements.csv"))) {
       String line;
       while ((line = br.readLine()) != null) {
         String[] parts = line.split(",");

@@ -7,18 +7,17 @@ import java.util.List;
 
 public class RandomMovementBot extends MovementBot {
 
-    public RandomMovementBot() {
-        super(new TreeAnalyzer(),0);
-    }
+  public RandomMovementBot() {
+    super(new TreeAnalyzer(), 0);
+  }
 
-    @Override
-    public MakeMoveEvent generateMakeMoveEvent(GameState gameState) {
-        List<MakeMoveEvent> makeMoveEvents = gameState.getPossibleMoves();
-        if(!makeMoveEvents.isEmpty()){
-            return makeMoveEvents.get((int)(Math.random()*makeMoveEvents.size()));
-        }
-        else{
-            return null;
-        }
+  @Override
+  public MakeMoveEvent generateMakeMoveEvent(GameState gameState) {
+    List<MakeMoveEvent> makeMoveEvents = gameState.getPossibleMoves();
+    if (!makeMoveEvents.isEmpty()) {
+      return makeMoveEvents.get((int) (Math.random() * makeMoveEvents.size()));
+    } else {
+      return null;
     }
+  }
 }

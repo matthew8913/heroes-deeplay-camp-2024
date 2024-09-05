@@ -40,7 +40,9 @@ public class BaseEvaluator implements GameStateEvaluator {
   public BaseEvaluator() {
     Properties props = new Properties();
     try (InputStream inputStream =
-        BaseEvaluator.class.getClassLoader().getResourceAsStream("coefficients.properties")) {
+        BaseEvaluator.class
+            .getClassLoader()
+            .getResourceAsStream("matthews_bots/coefficients.properties")) {
       if (inputStream == null) {
         throw new IOException("coefficients.properties not found");
       }
@@ -64,7 +66,7 @@ public class BaseEvaluator implements GameStateEvaluator {
    * @return оценку состояния.
    */
   @Override
-  synchronized public double evaluate(GameState gameState, PlayerType maximizingPlayerType) {
+  public synchronized double evaluate(GameState gameState, PlayerType maximizingPlayerType) {
     if (gameState.getGameStage() == GameStage.ENDED) {
       return evaluateGameEnd(gameState, maximizingPlayerType);
     }

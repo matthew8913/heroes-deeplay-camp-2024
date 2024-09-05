@@ -1,5 +1,7 @@
 package io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage;
 
+import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.*;
+
 import io.deeplay.camp.botfarm.bots.matthew_bots.TreeAnalyzer;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.BaseEvaluator;
 import io.deeplay.camp.botfarm.bots.matthew_bots.evaluate.EventScore;
@@ -9,13 +11,10 @@ import io.deeplay.camp.game.exceptions.GameException;
 import io.deeplay.camp.game.mechanics.GameStage;
 import io.deeplay.camp.game.mechanics.GameState;
 import io.deeplay.camp.game.mechanics.PlayerType;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static io.deeplay.camp.botfarm.bots.matthew_bots.movement_stage.MovementBotUtil.*;
 
 /** Бот, использующий классический алгоритм минимакс в рамках игрового состояния movement. */
 public class MinimaxBot extends MovementBot {
